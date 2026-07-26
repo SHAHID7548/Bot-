@@ -59,19 +59,22 @@ def start(message):
     text = "✨ **سلام، به ربات رسمی رئیس شاهد خوش آمدید!** ✨\n\nما اینجا هستیم تا هر نوع رباتی که نیاز دارید برایتان طراحی کنیم.\n\n🌐 **انتخاب زبان:**\nDari 🇦🇫 | English 🇬🇧 | Russian 🇷🇺\n\n---------------------------\n💎 Powered by Reis Shahid"
     bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='Markdown')
 
-# --- بخش تغییر زبان ---
+# --- بخش تغییر زبان (با اضافه شدن یوزرنیم) ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith('lang_'))
 def handle_lang(call):
     lang = call.data.split('_')[1]
     user_name = call.from_user.first_name
     user_id = call.from_user.id
     
+    # دریافت یوزرنیم (در صورت وجود)
+    username = f"@{call.from_user.username}" if call.from_user.username else "ندارد"
+    
     if lang == 'fa':
-        info_text = f"👤 نام: {user_name}\n🆔 آیدی: `{user_id}`\n\n🚀 برای سفارش ربات از دکمه پشتیبانی استفاده کنید.\n---------------------------\n💎 Powered by Reis Shahid"
+        info_text = f"👤 نام: {user_name}\n🏷 یوزرنیم: {username}\n🆔 آیدی: `{user_id}`\n\n🚀 برای سفارش ربات از دکمه پشتیبانی استفاده کنید.\n---------------------------\n💎 Powered by Reis Shahid"
     elif lang == 'en':
-        info_text = f"👤 Name: {user_name}\n🆔 ID: `{user_id}`\n\n🚀 Use the support button to order a bot.\n---------------------------\n💎 Powered by Reis Shahid"
+        info_text = f"👤 Name: {user_name}\n🏷 Username: {username}\n🆔 ID: `{user_id}`\n\n🚀 Use the support button to order a bot.\n---------------------------\n💎 Powered by Reis Shahid"
     else:
-        info_text = f"👤 Имя: {user_name}\n🆔 ID: `{user_id}`\n\n🚀 Используйте кнопку поддержки, чтобы заказать бота.\n---------------------------\n💎 Powered by Reis Shahid"
+        info_text = f"👤 Имя: {user_name}\n🏷 Юзернейм: {username}\n🆔 ID: `{user_id}`\n\n🚀 Используйте кнопку поддержки, чтобы заказать бота.\n---------------------------\n💎 Powered by Reis Shahid"
     
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton("📩 ارتباط با رئیس شاهد", callback_data='support'))
@@ -83,17 +86,30 @@ def support_request(call):
     bot.register_next_step_handler(msg, forward_to_admin)
 
 def forward_to_admin(message):
-    bot.send_message(ADMIN_ID, f"📢 **درخواست جدید**\n👤 {message.chat.first_name}\n🆔 `{message.chat.id}`\n📝 متن: {message.text}")
+    username = f"@{message.from_user.username}" if message.from_user.username else "ندارد"
+    bot.send_message(ADMIN_ID, f"📢 **درخواست جدید**\n👤 {message.chat.first_name}\n🏷 یوزرنیم: {username}\n🆔 `{message.chat.id}`\n📝 متن: {message.text}")
     bot.reply_to(message, "✅ پیام شما ارسال شد.")
 
-# پیام خودکار ۱۲ ساعته
+# --- پیام خودکار هر ۲ ساعت یک‌بار (۷۲۰۰ ثانیه) ---
 def auto_message():
     while True:
-        time.sleep(43200)
-        announcement = "🔔 **یادآوری ویژه از طرف رئیس شاهد**\nبرای دسترسی به ابزارهای هک: 👉 @Skgjfydydybot 👈"
+        time.sleep(7200)
+        announcement = (
+            "👑✨ پیشنهاد ویژه 〲ریس شاهد هکر بزرگ〲²⁰²⁴ ✨👑\n\n"
+            "🤖 آیا می‌خواهید هر نوع ربات اختصاصی داشته باشید؟\n"
+            "اگر شما هم می‌خواهید چنین ربات‌های پیشرفته‌ای بسازید، "
+            "همین حالا از طریق بخش پشتیبانی با ࢪیســـــــ‌‌᭄‌ـ شاهد هکر بزرگ〲²⁰²⁴ در تماس شوید! 🚀\n\n"
+            "🔔 لینک دسترسی به ابزارهای هک:\n"
+            "═════════ஜ▲ஜ═════════\n"
+            "👉 @Skgjfydydybot 👈\n"
+            "◁━━━━━━━◈✙◈━━━━━━━▷\n\n"
+            "💎 Powered by Reis Shahid"
+        )
         for user_id in users:
-            try: bot.send_message(user_id, announcement)
-            except: continue
+            try: 
+                bot.send_message(user_id, announcement)
+            except: 
+                continue
 
 threading.Thread(target=auto_message, daemon=True).start()
 
