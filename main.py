@@ -25,7 +25,7 @@ def admin_panel(message):
     if message.chat.id == ADMIN_ID:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add("📊 آمار", "📝 ارسال پیام به همه")
-        bot.send_message(message.chat.id, "📊 منوی مدیریت رئیس شاهد:", reply_markup=markup)
+        bot.send_message(message.chat.id, "📊 منوی مدیریت رئیس شاهد:\n\n💡 **نحوه پاسخ به پشتیبانی:**\nکافیست پیام کاربر را **Reply** کنید یا دستور زیر را بنویسید:\n`/reply USER_ID متن پاسخ`", reply_markup=markup, parse_mode='Markdown')
 
 @bot.message_handler(func=lambda message: message.text == "📊 آمار" and message.chat.id == ADMIN_ID)
 def admin_stats(message):
@@ -45,6 +45,22 @@ def broadcast_send(message):
         except: continue
     bot.reply_to(message, f"✅ پیام با موفقیت برای {count} کاربر ارسال شد.")
 
+# --- قابلیت پاسخ دادن ادمین به کاربران (ارسال پاسخ) ---
+@bot.message_handler(commands=['reply'])
+def reply_to_user(message):
+    if message.chat.id == ADMIN_ID:
+        try:
+            # جدا کردن آیدی و متن پاسخ
+            args = message.text.split(' ', 2)
+            target_user_id = int(args[1])
+            reply_text = args[2]
+            
+            # ارسال پاسخ به کاربر
+            bot.send_message(target_user_id, f"📩 **پاسخ از طرف رئیس شاهد:**\n\n{reply_text}", parse_mode='Markdown')
+            bot.reply_to(message, f"✅ پاسخ شما به کاربر `{target_user_id}` ارسال شد.", parse_mode='Markdown')
+        except Exception as e:
+            bot.reply_to(message, "❌ **خطا در فرمت ارسال!**\nلطفاً طبق فرمت زیر ارسال کنید:\n`/reply آیدی_کاربر متن_پاسخ`", parse_mode='Markdown')
+
 # --- دستور شروع ---
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -59,14 +75,12 @@ def start(message):
     text = "✨ **سلام، به ربات رسمی رئیس شاهد خوش آمدید!** ✨\n\nما اینجا هستیم تا هر نوع رباتی که نیاز دارید برایتان طراحی کنیم.\n\n🌐 **انتخاب زبان:**\nDari 🇦🇫 | English 🇬🇧 | Russian 🇷🇺\n\n---------------------------\n💎 Powered by Reis Shahid"
     bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='Markdown')
 
-# --- بخش تغییر زبان (با اضافه شدن یوزرنیم) ---
+# --- بخش تغییر زبان ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith('lang_'))
 def handle_lang(call):
     lang = call.data.split('_')[1]
     user_name = call.from_user.first_name
     user_id = call.from_user.id
-    
-    # دریافت یوزرنیم (در صورت وجود)
     username = f"@{call.from_user.username}" if call.from_user.username else "ندارد"
     
     if lang == 'fa':
@@ -80,6 +94,7 @@ def handle_lang(call):
     markup.add(types.InlineKeyboardButton("📩 ارتباط با رئیس شاهد", callback_data='support'))
     bot.edit_message_text(info_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode='Markdown')
 
+# --- سیستم پشتیبانی ---
 @bot.callback_query_handler(func=lambda call: call.data == 'support')
 def support_request(call):
     msg = bot.send_message(call.message.chat.id, "📩 لطفاً درخواست خود را بنویسید:")
@@ -87,8 +102,22 @@ def support_request(call):
 
 def forward_to_admin(message):
     username = f"@{message.from_user.username}" if message.from_user.username else "ندارد"
-    bot.send_message(ADMIN_ID, f"📢 **درخواست جدید**\n👤 {message.chat.first_name}\n🏷 یوزرنیم: {username}\n🆔 `{message.chat.id}`\n📝 متن: {message.text}")
-    bot.reply_to(message, "✅ پیام شما ارسال شد.")
+    user_id = message.chat.id
+    
+    admin_text = (
+        f"📢 **درخواست جدید پشتیبانی**\n\n"
+        f"👤 نام: {message.chat.first_name}\n"
+        f"🏷 یوزرنیم: {username}\n"
+        f"🆔 آیدی کاربر: `{user_id}`\n\n"
+        f"📝 **متن پیام:**\n{message.text}\n\n"
+        f"---------------------------\n"
+        f"💡 **طرز پاسخ دادن:**\n"
+        f"کد زیر را کپی کنید، متن پاسخ را جلو آن بنویسید و ارسال کنید:\n"
+        f"`/reply {user_id} `"
+    )
+    
+    bot.send_message(ADMIN_ID, admin_text, parse_mode='Markdown')
+    bot.reply_to(message, "✅ پیام شما با موفقیت برای رئیس شاهد ارسال شد. به زودی پاسخ خود را دریافت خواهید کرد.")
 
 # --- پیام خودکار هر ۲ ساعت یک‌بار (۷۲۰۰ ثانیه) ---
 def auto_message():
