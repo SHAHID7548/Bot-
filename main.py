@@ -4,7 +4,7 @@ import json
 import threading
 import time
 
-TOKEN = '8972517683:AAF3QEEO_tmHaYXGhFS3_bUSFCtZkJIngJA'
+TOKEN = '8972517683:AAFXdbpwmf5UuCwEMEEZKQuvbUUNl6vO4Aw'
 ADMIN_ID = 8173349543
 bot = telebot.TeleBot(TOKEN)
 DB_FILE = 'users.json'
@@ -45,7 +45,7 @@ def broadcast_send(message):
         except: continue
     bot.reply_to(message, f"✅ پیام با موفقیت برای {count} کاربر ارسال شد.")
 
-# --- دستور شروع (اصلاح شده برای مطابقت با عکس) ---
+# --- دستور شروع ---
 @bot.message_handler(commands=['start'])
 def start(message):
     users.add(message.chat.id)
@@ -59,14 +59,13 @@ def start(message):
     text = "✨ **سلام، به ربات رسمی رئیس شاهد خوش آمدید!** ✨\n\nما اینجا هستیم تا هر نوع رباتی که نیاز دارید برایتان طراحی کنیم.\n\n🌐 **انتخاب زبان:**\nDari 🇦🇫 | English 🇬🇧 | Russian 🇷🇺\n\n---------------------------\n💎 Powered by Reis Shahid"
     bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='Markdown')
 
-# --- بخش اصلاح شده تغییر زبان ---
+# --- بخش تغییر زبان ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith('lang_'))
 def handle_lang(call):
     lang = call.data.split('_')[1]
     user_name = call.from_user.first_name
     user_id = call.from_user.id
     
-    # متون مطابق با عکس
     if lang == 'fa':
         info_text = f"👤 نام: {user_name}\n🆔 آیدی: `{user_id}`\n\n🚀 برای سفارش ربات از دکمه پشتیبانی استفاده کنید.\n---------------------------\n💎 Powered by Reis Shahid"
     elif lang == 'en':
@@ -100,4 +99,3 @@ threading.Thread(target=auto_message, daemon=True).start()
 
 print("ربات روشن شد...")
 bot.polling(none_stop=True)
-
