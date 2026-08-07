@@ -31,6 +31,7 @@ TRANSLATIONS = {
             "⚡ نام: {name}\n"
             "📊 وضعیت ربات: {bot_status}\n"
             "🟢 امتیاز فعلی شما: `{score}`\n"
+            "🆔 آیدی عددی شما: `{uid}`\n"
             "🌐 لینک اختصاصی دعوت شما:\n`{link}`"
         ),
         "ref_bonus": "🎉 یک کاربر جدید با لینک دعوت شما به ربات پیوست! امتیاز به حساب شما اضافه شد.",
@@ -61,6 +62,7 @@ TRANSLATIONS = {
             "⚡ Name: {name}\n"
             "📊 Bot Status: {bot_status}\n"
             "🟢 Current Score: `{score}`\n"
+            "🆔 Your User ID: `{uid}`\n"
             "🌐 Your Special Invite Link:\n`{link}`"
         ),
         "ref_bonus": "🎉 A new user joined via your referral link! Score added to your account.",
@@ -193,6 +195,7 @@ def start(message):
           pass
     save_data(data)
 
+    # ارسال اطلاعات کاربر جدید به ادمین (بدون ارسال آیدی عددی در متن پیام)
     try:
       admins = load_admins()
       user_name = message.from_user.first_name or "بدون نام"
@@ -201,8 +204,7 @@ def start(message):
       admin_text = (
           f"👤 **کاربر جدید ربات را استارت زد:**\n\n"
           f"⚡ نام: {user_name}\n"
-          f"🔗 یوزرنیم: {username}\n"
-          f"🆔 User ID: {uid}"
+          f"🔗 یوزرنیم: {username}"
       )
 
       photos = bot.get_user_profile_photos(message.from_user.id, limit=1)
@@ -317,6 +319,7 @@ def my_info_callback(call):
       name=user.first_name,
       bot_status=bot_status,
       score=data[uid]["score"],
+      uid=uid,
       link=ref_link,
   )
   bot.answer_callback_query(call.id)
@@ -516,7 +519,7 @@ def forward_to_support_admin(message):
             f"📩 **پیام جدید به پشتیبانی**\n\n"
             f"👤 نام: {user_name}\n"
             f"🔗 یوزرنیم: {username}\n"
-            f"🆔 User ID: {uid}\n\n"
+            f"🆔 UserID: {uid}\n\n"
             f"💬 متن پیام:\n{user_text}\n\n"
             f"👇 برای پاسخ دادن، همین پیام را ریپلای کنید:",
             parse_mode="Markdown"
@@ -538,11 +541,12 @@ def admin_reply_to_user(message):
     if replied_msg.text:
       lines = replied_msg.text.split("\n")
       for line in lines:
-        if "User ID:" in line:
-          target_uid = line.replace("User ID:", "").strip()
+        if "UserID:" in line:
+          # استخراج دقیق فقط ارقام آیدی عددی
+          target_uid = "".join(filter(str.isdigit, line))
           break
 
-    if not target_uid or not target_uid.isdigit():
+    if not target_uid:
       bot.reply_to(message, "❌ خطا: نتوانستم آیدی عددی کاربر را از پیام پیدا کنم.")
       return
 
