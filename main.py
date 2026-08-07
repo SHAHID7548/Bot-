@@ -96,18 +96,24 @@ def save_data(data):
 
 
 def load_admins():
+  admins = [str(INITIAL_ADMIN_ID)]
   if os.path.exists(ADMINS_FILE):
-    with open(ADMINS_FILE, "r", encoding="utf-8") as f:
-      admins = json.load(f)
-      if str(INITIAL_ADMIN_ID) not in admins:
-        admins.insert(0, str(INITIAL_ADMIN_ID))
-      return admins
-  return [str(INITIAL_ADMIN_ID)]
+    try:
+      with open(ADMINS_FILE, "r", encoding="utf-8") as f:
+        loaded = json.load(f)
+        for aid in loaded:
+          if str(aid) not in admins:
+            admins.append(str(aid))
+    except Exception as e:
+      print(f"Error loading admins: {e}")
+  save_admins(admins)
+  return admins
 
 
 def save_admins(admins):
+  unique_admins = list(set([str(INITIAL_ADMIN_ID)] + [str(a) for a in admins]))
   with open(ADMINS_FILE, "w", encoding="utf-8") as f:
-    json.dump(admins, f, ensure_ascii=False, indent=4)
+    json.dump(unique_admins, f, ensure_ascii=False, indent=4)
 
 
 def is_admin(user_id):
@@ -400,33 +406,18 @@ def buy_score_menu_callback(call):
     return
 
   bot.answer_callback_query(call.id)
-  markup = types.InlineKeyboardMarkup(row_width=1)
-  markup.add(
-      types.InlineKeyboardButton("🛒 خرید ۵۰ امتیاز - ۱۰۰ افغانی", callback_data="buy_50"),
-      types.InlineKeyboardButton("🛒 خرید ۱۰۰ امتیاز - ۲۰۰ افغانی", callback_data="buy_100")
+  # تبدیل بخش خرید امتیاز از شیشه‌ای به متن راهنما همراه با هدایت به پشتیبانی
+  text = (
+      "🛒 **راهنمای خرید امتیاز:**\n\n"
+      "برای خرید امتیاز و ارتقای حساب کاربری خود، می‌توانید بسته‌های زیر را تهیه کنید:\n"
+      "🔹 ۵۰ امتیاز - ۱۰۰ افغانی\n"
+      "🔹 ۱۰۰ امتیاز - ۲۰۰ افغانی\n\n"
+      "📩 برای نهایی کردن خرید و ارسال رسید پرداختی، لطفاً از طریق دکمه «پشتیبانی و ارتباط» در منوی اصلی به مدیریت پیام دهید."
+  ) if lang != "en" else (
+      "🛒 **Score Purchase Guide:**\n\n"
+      "To purchase score, please contact support via the main menu."
   )
-  bot.send_message(call.message.chat.id, "🛒 **لطفاً بسته دلخواه خود را انتخاب کنید:**", reply_markup=markup, parse_mode="Markdown")
-
-
-@bot.callback_query_handler(func=lambda call: call.data in ["buy_50", "buy_100"])
-def buy_package_callback(call):
-  pkg = call.data.split("_")[1]
-  
-  if pkg == "50":
-    score_amt = 50
-    price = "۱۰۰ افغانی"
-  else:
-    score_amt = 100
-    price = "۲۰۰ افغانی"
-
-  bot.answer_callback_query(call.id)
-  
-  bot.send_message(
-      call.message.chat.id,
-      f"🛒 شما درخواست خرید **{score_amt} امتیاز** به مبلغ **{price}** را ثبت کردید.\n\n"
-      f"برای نهایی کردن خرید و ارسال رسید پرداختی، لطفاً از طریق بخش پشتیبانی با مدیریت در ارتباط باشید:",
-      parse_mode="Markdown"
-  )
+  bot.send_message(call.message.chat.id, text, reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "online_bot_menu")
@@ -851,11 +842,13 @@ def handle_docs_from_step(message):
 
 if __name__ == "__main__":
   print("Bot Manager is running...")
+  load_admins()  # بارگذاری و تثبیت ادمین‌ها در فایل
   if os.path.exists(DATA_FILE):
     try:
       with open(DATA_FILE, "r", encoding="utf-8") as f:
         saved_data = json.load(f)
         for user_id, user_info in saved_data.items():
+          # روشن کردن خودکار ربات‌های کاربران در صورت داشتن فایل ذخیره شده
           bot_path = os.path.join(USER_BOTS_DIR, f"{user_id}_bot.py")
           if os.path.exists(bot_path):
             try:
@@ -864,6 +857,19 @@ if __name__ == "__main__":
               print(f"Restored and started bot for user: {user_id}")
             except Exception as e:
               print(f"Failed to restart bot for {user_id}: {e}")
+          
+          # روشن کردن خودکار ربات‌هایی که آیدی فایل‌شان ثبت شده است
+          elif user_info.get("file_id"):
+            try:
+              f_info = bot.get_file(user_info["file_id"])
+              d_file = bot.download_file(f_info.file_path)
+              with open(bot_path, "wb") as bf:
+                bf.write(d_file)
+              proc = subprocess.Popen(["python3", bot_path])
+              active_user_processes[user_id] = proc
+              print(f"Restored and started bot via file_id for user: {user_id}")
+            except Exception as e:
+              print(f"Failed to restore bot via file_id for {user_id}: {e}")
     except Exception as e:
       print(f"Error loading saved bots on startup: {e}")
 
