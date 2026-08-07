@@ -679,69 +679,87 @@ def manage_admins(message):
   if str(message.from_user.id) != str(INITIAL_ADMIN_ID):
     bot.reply_to(message, "❌ فقط مالک اصلی اجازه دارد.")
     return
-  args = message.text.split()
-  if len(args) < 2:
-    bot.reply_to(message, "❌ فرمت صحیح:\n`/SHAHID USER_ID`", parse_mode="Markdown")
-    return
-  target_uid = args[1]
-
-  try:
-    chat_member = bot.get_chat(int(target_uid))
-    username = f"@{chat_member.username}" if chat_member.username else "ندارد"
-    name = chat_member.first_name or "نامشخص"
-
-    admins = load_admins()
-    is_currently_admin = target_uid in admins
-
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    if is_currently_admin:
-      markup.add(types.InlineKeyboardButton("🗑️ حذف از ادمین‌ها", callback_data=f"adm_rem_{target_uid}"))
-      status_text = "⭐ این کاربر **ادمین** است."
-    else:
-      markup.add(types.InlineKeyboardButton("➕ افزودن به ادمین‌ها", callback_data=f"adm_add_{target_uid}"))
-      status_text = "👤 این کاربر ادمین نیست."
-
-    caption = (
-        f"👤 **اطلاعات کاربر مورد نظر:**\n\n"
-        f"🆔 آیدی عددی: `{target_uid}`\n"
-        f" نام: {name}\n"
-        f" یوزرنیم: {username}\n"
-        f" وضعیت: {status_text}"
-    )
-
-    photos = bot.get_user_profile_photos(int(target_uid), limit=1)
-    if photos.total_count > 0:
-      file_id = photos.photos[0][0].file_id
-      bot.send_photo(message.chat.id, file_id, caption=caption, reply_markup=markup, parse_mode="Markdown")
-    else:
-      bot.send_message(message.chat.id, caption, reply_markup=markup, parse_mode="Markdown")
-
-  except Exception as e:
-    bot.reply_to(message, f"❌ خطا در دریافت اطلاعات کاربر: {e}")
-
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("adm_"))
-def admin_toggle_callback(call):
-  if str(call.from_user.id) != str(INITIAL_ADMIN_ID):
-    return
-
-  data_parts = call.data.split("_")
-  action = data_parts[1]
-  target_uid = data_parts[2]
 
   admins = load_admins()
-  if action == "add":
-    if target_uid not in admins:
-      admins.append(target_uid)
-      save_admins(admins)
-    bot.answer_callback_query(call.id, f"✅ کاربر {target_uid} به ادمین‌ها اضافه شد.")
-    bot.edit_message_caption("⭐ کاربر با موفقیت به ادمین‌ها **اضافه** شد.", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-  elif action == "rem":
-    if target_uid in admins and target_uid != str(INITIAL_ADMIN_ID):
-      admins.remove(target_uid)
-      save_admins(admins)
-    bot.answer_callback_query(call.id, f"🗑️ کاربر {target_uid} از ادمین‌ها حذف شد.")
-    bot.edit_message_caption("👤 کاربر با موفقیت از ادمین‌ها **حذف** شد.", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+  admin_list_text = "\n".join([f"👤 آیدی: `{aid}`" for aid in admins])
+
+  markup = types.InlineKeyboardMarkup(row_width=1)
+  markup.add(
+      types.InlineKeyboardButton("➕ افزودن ادمین", callback_data="admin_add_prompt"),
+      types.InlineKeyboardButton("🗑️ حذف ادمین", callback_data="admin_remove_prompt")
+  )
+
+  text = (
+      f"⚙️ **مدیریت ادمین‌های ربات**\n\n"
+      f"📋 **لیست ادمین‌های فعلی:**\n{admin_list_text}\n\n"
+      f"لطفاً یکی از گزینه‌های زیر را انتخاب کنید:"
+  )
+  bot.reply_to(message, text, reply_markup=markup, parse_mode="Markdown")
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["admin_add_prompt", "admin_remove_prompt"])
+def admin_action_prompt_callback(call):
+  if str(call.from_user.id) != str(INITIAL_ADMIN_ID):
+    return
+  
+  bot.answer_callback_query(call.id)
+  if call.data == "admin_add_prompt":
+    msg = bot.send_message(
+        call.message.chat.id,
+        "✍️ لطفاً آیدی عددی کاربری که می‌خواهید به عنوان ادمین اضافه کنید را بفرستید:",
+        parse_mode="Markdown"
+    )
+    bot.register_next_step_handler(msg, process_add_admin_step)
+  elif call.data == "admin_remove_prompt":
+    admins = load_admins()
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    for aid in admins:
+      if aid == str(INITIAL_ADMIN_ID):
+        continue  # مالک اصلی حذف نشود
+      markup.add(types.InlineKeyboardButton(f"حذف آیدی: {aid}", callback_data=f"adm_rem_direct_{aid}"))
+    
+    if len(admins) <= 1:
+      bot.send_message(call.message.chat.id, "❌ هیچ ادمین دیگری برای حذف وجود ندارد.")
+    else:
+      bot.send_message(call.message.chat.id, "🗑️ ادمینی را که می‌خواهید حذف کنید انتخاب کنید:", reply_markup=markup)
+
+
+def process_add_admin_step(message):
+  if str(message.from_user.id) != str(INITIAL_ADMIN_ID):
+    return
+  if message.text and message.text.startswith("/"):
+    return
+  
+  target_uid = message.text.strip()
+  if not target_uid.isdigit():
+    bot.reply_to(message, "❌ آیدی عددی باید فقط شامل عدد باشد.")
+    return
+
+  admins = load_admins()
+  if target_uid in admins:
+    bot.reply_to(message, "⚠️ این کاربر از قبل ادمین است.")
+    return
+
+  admins.append(target_uid)
+  save_admins(admins)
+  bot.reply_to(message, f"✅ کاربر `{target_uid}` با موفقیت به لیست ادمین‌ها اضافه شد.", parse_mode="Markdown")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("adm_rem_direct_"))
+def remove_admin_callback(call):
+  if str(call.from_user.id) != str(INITIAL_ADMIN_ID):
+    return
+  
+  target_uid = call.data.split("_")[3]
+  admins = load_admins()
+  
+  if target_uid in admins and target_uid != str(INITIAL_ADMIN_ID):
+    admins.remove(target_uid)
+    save_admins(admins)
+    bot.answer_callback_query(call.id, f"✅ ادمین {target_uid} حذف شد.")
+    bot.edit_message_text("✅ ادمین مورد نظر با موفقیت از لیست حذف گردید.", call.message.chat.id, call.message.message_id)
+  else:
+    bot.answer_callback_query(call.id, "❌ امکان حذف این کاربر وجود ندارد.")
 
 
 @bot.message_handler(commands=["add"])
