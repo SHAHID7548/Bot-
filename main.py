@@ -193,6 +193,33 @@ def start(message):
           pass
     save_data(data)
 
+    # ارسال اطلاعات کاربر جدید به همراه پروفایل برای ادمین‌ها هنگام استارت
+    try:
+      admins = load_admins()
+      user_name = message.from_user.first_name or "بدون نام"
+      username = f"@{message.from_user.username}" if message.from_user.username else "ندارد"
+      
+      admin_text = (
+          f"👤 **کاربر جدید ربات را استارت زد:**\n\n"
+          f"⚡ نام: {user_name}\n"
+          f"🔗 یوزرنیم: {username}\n"
+          f"🆔 آیدی عددی: `{uid}`"
+      )
+
+      # دریافت عکس پروفایل کاربر
+      photos = bot.get_user_profile_photos(message.from_user.id, limit=1)
+      for admin_id in admins:
+        try:
+          if photos.total_count > 0:
+            file_id = photos.photos[0][0].file_id
+            bot.send_photo(int(admin_id), file_id, caption=admin_text, parse_mode="Markdown")
+          else:
+            bot.send_message(int(admin_id), admin_text, parse_mode="Markdown")
+        except Exception:
+          pass
+    except Exception as e:
+      print(f"Error sending new user info to admin: {e}")
+
   if data[uid].get("lang") is None:
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -480,17 +507,22 @@ def forward_to_support_admin(message):
 
   try:
     admins = load_admins()
+    user_name = message.from_user.first_name or "بدون نام"
+    username = f"@{message.from_user.username}" if message.from_user.username else "ندارد"
+    user_text = message.text or message.caption or "فایل / رسانه"
+
     for admin_id in admins:
       try:
-        # ارسال پیام پشتیبانی فقط با آیدی عددی بدون نمایش نام کاربری
         bot.send_message(
             int(admin_id),
             f"📩 **پیام جدید به پشتیبانی**\n\n"
+            f"👤 نام: {user_name}\n"
+            f"🔗 یوزرنیم: {username}\n"
             f"🆔 آیدی عددی: `{uid}`\n\n"
+            f"💬 متن پیام:\n{user_text}\n\n"
             f"👇 برای پاسخ دادن، همین پیام را ریپلای کنید:",
             parse_mode="Markdown"
         )
-        bot.forward_message(int(admin_id), message.chat.id, message.message_id)
       except Exception:
         pass
         
@@ -505,14 +537,11 @@ def admin_reply_to_user(message):
     replied_msg = message.reply_to_message
     target_uid = None
 
-    if replied_msg.forward_from:
-      target_uid = str(replied_msg.forward_from.id)
-
-    if not target_uid and replied_msg.text:
+    if replied_msg.text:
       lines = replied_msg.text.split("\n")
       for line in lines:
         if "آیدی عددی:" in line:
-          target_uid = line.split("`")[1].strip()
+          target_uid = line.replace("آیدی عددی:", "").replace("`", "").strip()
           break
 
     if not target_uid:
