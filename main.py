@@ -15,7 +15,7 @@ CHANNELS_FILE = "channels.json"
 USER_BOTS_DIR = "user_bots"
 os.makedirs(USER_BOTS_DIR, exist_ok=True)
 
-# سیستم ترجمه و متن‌ها
+# سیستم ترجمه و متن‌ها دقیقاً مطابق نمونه شما
 TRANSLATIONS = {
     "dr": {
         "welcome_menu": (
@@ -25,7 +25,7 @@ TRANSLATIONS = {
         "profile": (
             "کاربر ⚡ {name} | برای استفاده از این دکمه به 50 امتیاز نیاز دارید.\n"
             "هر کاربری که با لینک شما عضو شود 5 امتیاز می‌گیرید.\n"
-            "🟢 امتیاز فعلی شما: {score}\n"
+            "🟢 امتیاز فعلی ماهی: {score}\n"
             "🌐 لینک مخصوص شما:\n{link}"
         ),
         "not_enough": "❌ امتیاز شما کافی نیست (۵۰ امتیاز لازم است).",
@@ -33,9 +33,9 @@ TRANSLATIONS = {
         "ref_bonus": "🎉 یک کاربر با لینک دعوت شما پیوست! +۵ امتیاز دریافت کردید.",
         "support_prompt": "✍️ لطفاً پیام، سؤال یا مشکل خود را ارسال کنید تا به ادمین برسد:",
         "support_sent": "✅ پیام شما با موفقیت به پشتیبانی ارسال شد. به زودی پاسخ داده خواهد شد.",
-        "btn_support": "📞 پشتیبانی ✔️",
+        "btn_support": "پشتیبانی ✔️",
         "btn_online_bot": "🚀 آنلاین کردن ربات  پیم",
-        "btn_my_info": "👤 معلومات من ✔️",
+        "btn_my_info": "معلومات من ✔️",
         "join_lock": (
             "📢 برای استفاده از ربات ما لطفا در کانال ما عضو شوید\n"
             "بعد از عضویت روی عضو شدم کلیک کنید"
@@ -105,28 +105,22 @@ def check_user_membership(user_id):
         return False
     except Exception as e:
       print(f"Error checking membership for {ch_id}: {e}")
-      pass
+      return False
   return True
 
 
-# ساخت منوی اصلی شیشه‌ای دقیقاً مطابق عکس
+# ساخت منوی اصلی شیشه‌ای دقیقاً مثل عکس شما
 def get_main_menu():
   markup = types.InlineKeyboardMarkup(row_width=1)
   markup.add(
       types.InlineKeyboardButton("🚀 آنلاین کردن ربات  پیم", callback_data="online_bot_menu"),
-      types.InlineKeyboardButton("👤 معلومات من ✔️", callback_data="my_info"),
-      types.InlineKeyboardButton("📞 پشتیبانی ✔️", callback_data="support_btn")
+      types.InlineKeyboardButton("معلومات من ✔️", callback_data="my_info"),
+      types.InlineKeyboardButton("پشتیبانی ✔️", callback_data="support_btn")
   )
   return markup
 
 
-def send_main_menu(chat_id, user):
-  uid = str(user.id)
-  data = load_data()
-  if uid not in data:
-    data[uid] = {"score": 0, "lang": "dr"}
-    save_data(data)
-
+def send_main_menu(chat_id):
   text = TRANSLATIONS["dr"]["welcome_menu"]
   bot.send_message(chat_id, text, reply_markup=get_main_menu())
 
@@ -149,7 +143,7 @@ def start(message):
           pass
     save_data(data)
 
-  # بررسی عضویت اجباری
+  # بررسی عضویت اجباری برای همه بدون استثناء
   if not check_user_membership(uid):
     channels = load_channels()
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -160,7 +154,7 @@ def start(message):
     bot.send_message(message.chat.id, TRANSLATIONS["dr"]["join_lock"], reply_markup=markup)
     return
 
-  send_main_menu(message.chat.id, message.from_user)
+  send_main_menu(message.chat.id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_join")
@@ -172,7 +166,7 @@ def check_join_callback(call):
       bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
       pass
-    send_main_menu(call.message.chat.id, call.from_user)
+    send_main_menu(call.message.chat.id)
   else:
     bot.answer_callback_query(call.id, TRANSLATIONS["dr"]["not_joined_alert"], show_alert=True)
 
@@ -210,7 +204,8 @@ def online_bot_callback(call):
     bot.send_message(call.message.chat.id, f"❌ امتیاز شما کافی نیست!\nبرای آنلاین کردن ربات ۵۰ امتیاز نیاز دارید اما امتیاز فعلی شما {score} است.")
     return
 
-  bot.send_message(call.message.chat.id, "📂 لطفاً فایل ربات خود (با فرمت `.py`) را ارسال کنید:")
+  msg = bot.send_message(call.message.chat.id, "📂 لطفاً فایل ربات خود (با فرمت `.py`) را ارسال کنید:")
+  bot.register_next_step_handler(msg, handle_docs_from_step)
 
 
 # مدیریت کلیک روی دکمه پشتیبانی
@@ -390,7 +385,7 @@ def manage_score(message):
 
 
 @bot.message_handler(content_types=["document"])
-def handle_docs(message):
+def handle_docs_from_step(message):
   uid = str(message.from_user.id)
   data = load_data()
 
