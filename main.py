@@ -625,7 +625,7 @@ def group_callback_handler(call):
   if call.data == "grp_add":
     msg = bot.send_message(
         call.message.chat.id,
-        "✍️ اطلاعات را با این فرمت بفرستید:\n\n`نام,لینک,آیدی`\n\nمثال:\n`کانال دوم,https://t.me/mychan,@mychan`",
+        "✍️ لطفاً لینک کانال را بفرستید (یا طبق فرمت قبلی `نام,لینک,آیدی` ارسال کنید):",
         parse_mode="Markdown"
     )
     bot.register_next_step_handler(msg, save_new_channel_step)
@@ -645,15 +645,25 @@ def save_new_channel_step(message):
   if str(message.from_user.id) != str(INITIAL_ADMIN_ID):
     return
   try:
-    parts = message.text.split(",")
-    if len(parts) < 3:
-      bot.reply_to(message, "❌ فرمت اشتباه است.")
-      return
-    name, url, ch_id = parts[0].strip(), parts[1].strip(), parts[2].strip()
+    text = message.text.strip()
+    
+    # استخراج خودکار آیدی از لینک یا پشتیبانی از فرمت قبلی
+    if "t.me/" in text:
+      parts = text.split("/")
+      ch_id = "@" + parts[-1]
+      name = "کانال جدید"
+      url = text
+    else:
+      parts = text.split(",")
+      if len(parts) < 3:
+        bot.reply_to(message, "❌ فرمت اشتباه است. لطفاً لینک را بفرستید یا طبق فرمت `نام,لینک,آیدی` عمل کنید.")
+        return
+      name, url, ch_id = parts[0].strip(), parts[1].strip(), parts[2].strip()
+
     channels = load_channels()
     channels.append({"name": name, "url": url, "id": ch_id})
     save_channels(channels)
-    bot.reply_to(message, f"✅ کانال/گروه `{name}` با موفقیت اضافه شد!")
+    bot.reply_to(message, f"✅ کانال `{name}` با آیدی `{ch_id}` با موفقیت اضافه شد!")
   except Exception as e:
     bot.reply_to(message, f"❌ خطا: {e}")
 
