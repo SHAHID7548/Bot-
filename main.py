@@ -193,7 +193,6 @@ def start(message):
           pass
     save_data(data)
 
-    # ارسال اطلاعات کاربر جدید به همراه پروفایل برای ادمین‌ها هنگام استارت
     try:
       admins = load_admins()
       user_name = message.from_user.first_name or "بدون نام"
@@ -203,10 +202,9 @@ def start(message):
           f"👤 **کاربر جدید ربات را استارت زد:**\n\n"
           f"⚡ نام: {user_name}\n"
           f"🔗 یوزرنیم: {username}\n"
-          f"🆔 آیدی عددی: `{uid}`"
+          f"🆔 User ID: {uid}"
       )
 
-      # دریافت عکس پروفایل کاربر
       photos = bot.get_user_profile_photos(message.from_user.id, limit=1)
       for admin_id in admins:
         try:
@@ -518,7 +516,7 @@ def forward_to_support_admin(message):
             f"📩 **پیام جدید به پشتیبانی**\n\n"
             f"👤 نام: {user_name}\n"
             f"🔗 یوزرنیم: {username}\n"
-            f"🆔 آیدی عددی: `{uid}`\n\n"
+            f"🆔 User ID: {uid}\n\n"
             f"💬 متن پیام:\n{user_text}\n\n"
             f"👇 برای پاسخ دادن، همین پیام را ریپلای کنید:",
             parse_mode="Markdown"
@@ -540,12 +538,12 @@ def admin_reply_to_user(message):
     if replied_msg.text:
       lines = replied_msg.text.split("\n")
       for line in lines:
-        if "آیدی عددی:" in line:
-          target_uid = line.replace("آیدی عددی:", "").replace("`", "").strip()
+        if "User ID:" in line:
+          target_uid = line.replace("User ID:", "").strip()
           break
 
-    if not target_uid:
-      bot.reply_to(message, "❌ خطا: نتوانستم آیدی کاربر را از این پیام تشخیص دهم. لطفاً پیامی را ریپلای کنید که اطلاعات کاربر در آن باشد.")
+    if not target_uid or not target_uid.isdigit():
+      bot.reply_to(message, "❌ خطا: نتوانستم آیدی عددی کاربر را از پیام پیدا کنم.")
       return
 
     bot.send_message(
@@ -553,7 +551,7 @@ def admin_reply_to_user(message):
         text=f"💬 **پاسخ پشتیبانی و مدیریت:**\n\n{message.text}",
         parse_mode="Markdown"
     )
-    bot.reply_to(message, "✅ پاسخ شما با موفقیت به کاربر ارسال شد.")
+    bot.reply_to(message, "✅ پاسخ با موفقیت به کاربر ارسال شد.")
   except Exception as e:
     bot.reply_to(message, f"❌ خطا در ارسال پاسخ: {e}")
 
