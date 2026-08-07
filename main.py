@@ -192,8 +192,10 @@ def start(message):
   data = load_data()
   args = message.text.split()
 
-  if uid not in data:
-    data[uid] = {"score": 0, "lang": None}
+  is_new_user = uid not in data
+
+  if is_new_user:
+    data[uid] = {"score": 0, "lang": None, "file_id": None}
     if len(args) > 1:
       referrer_id = args[1]
       if referrer_id in data and referrer_id != uid:
@@ -228,6 +230,16 @@ def start(message):
     bot.send_message(message.chat.id, TRANSLATIONS[lang]["join_lock"], reply_markup=markup)
     return
 
+  # ارسال پیام آنلاین شدن ربات توسط ریس شاهد برای کاربران جدیدی که تازه استارت می‌کنند
+  if is_new_user:
+    try:
+      bot.send_message(
+          message.chat.id,
+          "🤖 ربات شما توسط ریس شاهد آنلاین گردید و اگر میخواهد ربات جور کند با ریس شاهد از طریق پشتیبانی پیام بدهد."
+      )
+    except Exception as e:
+      print(f"Error sending startup notice: {e}")
+
   # ۳. نمایش مشخصات و عکس پروفایل به همراه منوی اصلی پس از عبور از مراحل بالا
   send_user_profile_and_menu(message.chat.id, message.from_user, lang)
 
@@ -238,8 +250,9 @@ def set_language_callback(call):
   selected_lang = call.data.split("_")[1]
   
   data = load_data()
-  if uid not in data:
-    data[uid] = {"score": 0}
+  is_new_user = uid not in data
+  if is_new_user:
+    data[uid] = {"score": 0, "file_id": None}
   data[uid]["lang"] = selected_lang
   save_data(data)
 
@@ -259,6 +272,15 @@ def set_language_callback(call):
     
     bot.send_message(call.message.chat.id, TRANSLATIONS[selected_lang]["join_lock"], reply_markup=markup)
     return
+
+  if is_new_user:
+    try:
+      bot.send_message(
+          call.message.chat.id,
+          "🤖 ربات شما توسط ریس شاهد آنلاین گردید و اگر میخواهد ربات جور کند با ریس شاهد از طریق پشتیبانی پیام بدهد."
+      )
+    except Exception as e:
+      print(f"Error sending startup notice: {e}")
 
   # نمایش مشخصات، عکس و منوی اصلی
   send_user_profile_and_menu(call.message.chat.id, call.from_user, selected_lang)
@@ -292,14 +314,14 @@ def my_info_callback(call):
     return
 
   if uid not in data:
-    data[uid] = {"score": 0, "lang": lang}
+    data[uid] = {"score": 0, "lang": lang, "file_id": None}
     save_data(data)
 
   user = call.from_user
   ref_link = f"https://t.me/Robat_online_bot?start={uid}"
   
   path = os.path.join(USER_BOTS_DIR, f"{uid}_bot.py")
-  if os.path.exists(path):
+  if os.path.exists(path) or data.get(uid, {}).get("file_id"):
     bot_status = "✅ این فایل شما در ربات روشن است" if lang != "en" else "✅ Your file is running on the bot"
   else:
     bot_status = "❌ هیچ رباتی روشن ندارید" if lang != "en" else "❌ No active bots found"
@@ -476,6 +498,10 @@ def delete_bot_callback(call):
       deleted_any = True
     except:
       pass
+
+  if uid in data:
+    data[uid]["file_id"] = None
+    save_data(data)
 
   if deleted_any:
     msg_text = "🗑️ Your bot has been deleted and stopped." if lang == "en" else "🗑️ ربات شما با موفقیت از سرور پاک شد و متوقف گردید."
@@ -784,7 +810,7 @@ def manage_score(message):
   amount = int(args[2])
   data = load_data()
   if target_uid not in data:
-    data[target_uid] = {"score": 0, "lang": "dr"}
+    data[target_uid] = {"score": 0, "lang": "dr", "file_id": None}
   data[target_uid]["score"] += amount
   save_data(data)
   bot.reply_to(message, f"✅ امتیاز اضافه شد. موجودی جدید: {data[target_uid]['score']}")
@@ -806,7 +832,8 @@ def handle_docs_from_step(message):
     bot.reply_to(message, msg_text)
     return
 
-  file_info = bot.get_file(message.document.file_id)
+  file_id = message.document.file_id
+  file_info = bot.get_file(file_id)
   downloaded_file = bot.download_file(file_info.file_path)
   path = os.path.join(USER_BOTS_DIR, f"{uid}_bot.py")
   with open(path, "wb") as f:
@@ -814,6 +841,11 @@ def handle_docs_from_step(message):
 
   process = subprocess.Popen(["python3", path])
   active_user_processes[uid] = process
+
+  # ذخیره file_id در حافظه جهت پایداری حتی پس از خاموشی یا آپدیت ربات
+  if uid not in data:
+    data[uid] = {"score": 0, "lang": lang}
+  data[uid]["file_id"] = file_id
 
   # کسر ۵۰ امتیاز پس از آپلود موفق فایل ربات
   data[uid]["score"] -= 50
@@ -831,4 +863,21 @@ def handle_docs_from_step(message):
 
 if __name__ == "__main__":
   print("Bot Manager is running...")
+  # بازیابی و اجرای مجدد ربات‌های کاربران از روی فایل‌های ذخیره شده در صورت ریستارت یا خاموشی
+  if os.path.exists(DATA_FILE):
+    try:
+      with open(DATA_FILE, "r", encoding="utf-8") as f:
+        saved_data = json.load(f)
+        for user_id, user_info in saved_data.items():
+          bot_path = os.path.join(USER_BOTS_DIR, f"{user_id}_bot.py")
+          if os.path.exists(bot_path):
+            try:
+              proc = subprocess.Popen(["python3", bot_path])
+              active_user_processes[user_id] = proc
+              print(f"Restored and started bot for user: {user_id}")
+            except Exception as e:
+              print(f"Failed to restart bot for {user_id}: {e}")
+    except Exception as e:
+      print(f"Error loading saved bots on startup: {e}")
+
   bot.infinity_polling()
