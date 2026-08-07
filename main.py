@@ -23,58 +23,62 @@ TRANSLATIONS = {
     "dr": {
         "choose_lang": "لطفاً زبان خود را انتخاب کنید:\n请选择您的语言 / Please choose your language:",
         "welcome_menu": (
-            "به بهترین ربات‌ساز خوش آمدید ✨\n\n"
-            "از منو زیر استفاده کنید: ✔️"
+            "🌟 به پیشرفته‌ترین ربات‌ساز تلگرامی خوش آمدید ✨\n\n"
+            "🛠 لطفاً از منوی زیر برای مدیریت ربات خود استفاده کنید: 👇"
         ),
         "profile": (
-            "کاربر ⚡ {name}\n"
+            "👤 **پروفایل کاربری:**\n\n"
+            "⚡ نام: {name}\n"
             "📊 وضعیت ربات: {bot_status}\n"
-            "🟢 امتیاز فعلی شما: {score}\n"
-            "🌐 لینک مخصوص شما:\n{link}"
+            "🟢 امتیاز فعلی شما: `{score}`\n"
+            "🌐 لینک اختصاصی دعوت شما:\n`{link}`"
         ),
-        "ref_bonus": "🎉 یک کاربر با لینک دعوت شما پیوست! امتیاز دریافت کردید.",
-        "support_prompt": "✍️ لطفاً پیام، سؤال یا مشکل خود را ارسال کنید تا به ادمین برسد:",
+        "ref_bonus": "🎉 یک کاربر جدید با لینک دعوت شما به ربات پیوست! امتیاز به حساب شما اضافه شد.",
+        "support_prompt": "✍️ لطفاً پیام، سؤال یا مشکل خود را ارسال کنید تا مستقیماً به تیم پشتیبانی و مدیریت برسد:",
         "support_sent": "✅ پیام شما با موفقیت به پشتیبانی ارسال شد. به زودی پاسخ داده خواهد شد.",
         "join_lock": (
-            "📢 برای استفاده از ربات ما لطفا در کانال ما عضو شوید\n"
-            "بعد از عضویت روی عضو شدم کلیک کنید"
+            "📢 **توجه مهم!**\n\n"
+            "برای استفاده از امکانات ربات، لطفاً ابتدا در کانال‌های زیر عضو شوید:\n\n"
+            "پس از عضویت، روی دکمه «عضو شدم ✅» کلیک کنید."
         ),
-        "btn_check_join": "عضو شدم ✅",
-        "not_joined_alert": "❌ شما هنوز در تمام کانال‌ها و گروه‌های زیر عضو نشده‌اید!",
+        "btn_check_join": "عضو شدم ✅ بررسی اشتراک",
+        "not_joined_alert": "❌ شما هنوز در تمام کانال‌ها عضو نشده‌اید! لطفاً عضویت خود را تکمیل کنید.",
         "btn_online": "🛠 آنلاین کردن ربات",
         "btn_delete": "❌ حذف ربات",
         "btn_transfer": "🔄 انتقال امتیاز",
-        "btn_buy": "🛒 خریداری امتیاز",
-        "btn_info": "✔ معلومات من",
-        "btn_support": "✔ پشتیبانی",
+        "btn_buy": "🛒 خرید امتیاز",
+        "btn_info": "✔ اطلاعات من",
+        "btn_support": "✔ پشتیبانی و ارتباط",
     },
     "en": {
         "choose_lang": "Please choose your language:",
         "welcome_menu": (
-            "Welcome to the best bot builder ✨\n\n"
-            "Use the menu below: ✔️"
+            "🌟 Welcome to the most advanced Bot Builder ✨\n\n"
+            "🛠 Please use the menu below to manage your bot: 👇"
         ),
         "profile": (
-            "User ⚡ {name}\n"
+            "👤 **User Profile:**\n\n"
+            "⚡ Name: {name}\n"
             "📊 Bot Status: {bot_status}\n"
-            "🟢 Your current score: {score}\n"
-            "🌐 Your special link:\n{link}"
+            "🟢 Current Score: `{score}`\n"
+            "🌐 Your Special Invite Link:\n`{link}`"
         ),
-        "ref_bonus": "🎉 A user joined using your referral link! You received score.",
-        "support_prompt": "✍️ Please send your message, question, or issue to reach the admin:",
-        "support_sent": "✅ Your message has been successfully sent to support. It will be answered soon.",
+        "ref_bonus": "🎉 A new user joined via your referral link! Score added to your account.",
+        "support_prompt": "✍️ Please send your message, question, or issue to reach the support team:",
+        "support_sent": "✅ Your message has been successfully sent to support. We will reply soon.",
         "join_lock": (
-            "📢 To use our bot, please join our channel first\n"
-            "After joining, click 'Joined' button"
+            "📢 **Important Notice!**\n\n"
+            "To use our bot, please join our official channels first:\n\n"
+            "After joining, click the 'Joined ✅' button."
         ),
-        "btn_check_join": "Joined ✅",
-        "not_joined_alert": "❌ You have not joined all required channels and groups yet!",
+        "btn_check_join": "Joined ✅ Check Status",
+        "not_joined_alert": "❌ You have not joined all required channels yet!",
         "btn_online": "🛠 Online Bot",
         "btn_delete": "❌ Delete Bot",
         "btn_transfer": "🔄 Transfer Score",
         "btn_buy": "🛒 Buy Score",
         "btn_info": "✔ My Info",
-        "btn_support": "✔ Support",
+        "btn_support": "✔ Support & Contact",
     }
 }
 
@@ -144,7 +148,7 @@ def check_user_membership(user_id):
   return True
 
 
-# ساخت منوی اصلی شیشه‌ای بر اساس زبان کاربر
+# ساخت منوی اصلی شیشه‌ای مدرن و منظم
 def get_main_menu(lang="dr"):
   t = TRANSLATIONS.get(lang, TRANSLATIONS["dr"])
   markup = types.InlineKeyboardMarkup(row_width=2)
@@ -161,7 +165,7 @@ def get_main_menu(lang="dr"):
 
 def send_main_menu(chat_id, lang="dr"):
   t = TRANSLATIONS.get(lang, TRANSLATIONS["dr"])
-  bot.send_message(chat_id, t["welcome_menu"], reply_markup=get_main_menu(lang))
+  bot.send_message(chat_id, t["welcome_menu"], reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
 
 def send_user_profile_and_menu(chat_id, user, lang):
@@ -170,10 +174,10 @@ def send_user_profile_and_menu(chat_id, user, lang):
     photos = bot.get_user_profile_photos(user.id, limit=1)
     username_str = f"@{user.username}" if user.username else "ندارد"
     caption = (
-        f"👤 **مشخصات شما در ربات:**\n\n"
+        f"🛡 **اطلاعات حساب کاربری شما:**\n\n"
         f"🆔 آیدی عددی: `{uid}`\n"
         f"🌐 نام کاربری: {username_str}\n"
-        f" نام: {user.first_name}"
+        f"👤 نام: {user.first_name}"
     )
     if photos.total_count > 0:
       file_id = photos.photos[0][0].file_id
@@ -207,7 +211,6 @@ def start(message):
           pass
     save_data(data)
 
-  # ۱. بررسی اینکه آیا کاربر زبان انتخاب کرده است یا خیر
   if data[uid].get("lang") is None:
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -219,7 +222,6 @@ def start(message):
 
   lang = data[uid]["lang"]
 
-  # ۲. بررسی عضویت اجباری
   if not check_user_membership(uid):
     channels = load_channels()
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -227,20 +229,9 @@ def start(message):
       markup.add(types.InlineKeyboardButton(ch["name"], url=ch["url"]))
     markup.add(types.InlineKeyboardButton(TRANSLATIONS[lang]["btn_check_join"], callback_data="check_join"))
     
-    bot.send_message(message.chat.id, TRANSLATIONS[lang]["join_lock"], reply_markup=markup)
+    bot.send_message(message.chat.id, TRANSLATIONS[lang]["join_lock"], reply_markup=markup, parse_mode="Markdown")
     return
 
-  # ارسال پیام آنلاین شدن ربات توسط ریس شاهد برای کاربران جدیدی که تازه استارت می‌کنند
-  if is_new_user:
-    try:
-      bot.send_message(
-          message.chat.id,
-          "🤖 ربات شما توسط ریس شاهد آنلاین گردید و اگر میخواهد ربات جور کند با ریس شاهد از طریق پشتیبانی پیام بدهد."
-      )
-    except Exception as e:
-      print(f"Error sending startup notice: {e}")
-
-  # ۳. نمایش مشخصات و عکس پروفایل به همراه منوی اصلی پس از عبور از مراحل بالا
   send_user_profile_and_menu(message.chat.id, message.from_user, lang)
 
 
@@ -262,7 +253,6 @@ def set_language_callback(call):
   except:
     pass
 
-  # بررسی عضویت اجباری پس از انتخاب زبان
   if not check_user_membership(uid):
     channels = load_channels()
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -270,19 +260,9 @@ def set_language_callback(call):
       markup.add(types.InlineKeyboardButton(ch["name"], url=ch["url"]))
     markup.add(types.InlineKeyboardButton(TRANSLATIONS[selected_lang]["btn_check_join"], callback_data="check_join"))
     
-    bot.send_message(call.message.chat.id, TRANSLATIONS[selected_lang]["join_lock"], reply_markup=markup)
+    bot.send_message(call.message.chat.id, TRANSLATIONS[selected_lang]["join_lock"], reply_markup=markup, parse_mode="Markdown")
     return
 
-  if is_new_user:
-    try:
-      bot.send_message(
-          call.message.chat.id,
-          "🤖 ربات شما توسط ریس شاهد آنلاین گردید و اگر میخواهد ربات جور کند با ریس شاهد از طریق پشتیبانی پیام بدهد."
-      )
-    except Exception as e:
-      print(f"Error sending startup notice: {e}")
-
-  # نمایش مشخصات، عکس و منوی اصلی
   send_user_profile_and_menu(call.message.chat.id, call.from_user, selected_lang)
 
 
@@ -310,7 +290,7 @@ def my_info_callback(call):
   lang = data.get(uid, {}).get("lang", "dr")
   
   if not check_user_membership(uid):
-    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!", show_alert=True)
     return
 
   if uid not in data:
@@ -322,9 +302,9 @@ def my_info_callback(call):
   
   path = os.path.join(USER_BOTS_DIR, f"{uid}_bot.py")
   if os.path.exists(path) or data.get(uid, {}).get("file_id"):
-    bot_status = "✅ این فایل شما در ربات روشن است" if lang != "en" else "✅ Your file is running on the bot"
+    bot_status = "🟢 روشن و فعال روی سرور" if lang != "en" else "🟢 Running & Active on Server"
   else:
-    bot_status = "❌ هیچ رباتی روشن ندارید" if lang != "en" else "❌ No active bots found"
+    bot_status = "🔴 غیرفعال (بدون ربات)" if lang != "en" else "🔴 Inactive (No Bot)"
 
   text = TRANSLATIONS[lang]["profile"].format(
       name=user.first_name,
@@ -333,10 +313,9 @@ def my_info_callback(call):
       link=ref_link,
   )
   bot.answer_callback_query(call.id)
-  bot.send_message(call.message.chat.id, text, reply_markup=get_main_menu(lang))
+  bot.send_message(call.message.chat.id, text, reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
 
-# بخش انتقال امتیاز بین کاربران عادی
 @bot.callback_query_handler(func=lambda call: call.data == "transfer_score_menu")
 def transfer_score_callback(call):
   uid = str(call.from_user.id)
@@ -344,13 +323,13 @@ def transfer_score_callback(call):
   lang = data.get(uid, {}).get("lang", "dr")
   
   if not check_user_membership(uid):
-    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!", show_alert=True)
     return
 
   bot.answer_callback_query(call.id)
   msg = bot.send_message(
       call.message.chat.id,
-      "📤 لطفاً آیدی عددی کاربر مقصد و مقدار امتیازی که می‌خواهید انتقال دهید را با فاصله بفرستید:\n\nمثال:\n`123456789 20`\n\n*(توجه: ۵ امتیاز کارمزد از شما کسر خواهد شد)*"
+      "📤 لطفاً آیدی عددی کاربر مقصد و مقدار امتیازی که می‌خواهید انتقال دهید را با فاصله ارسال کنید:\n\nمثال:\n`123456789 20`\n\n*(توجه: ۵ امتیاز کارمزد از حساب شما کسر می‌گردد)*"
       if lang != "en" else
       "📤 Please send target user ID and amount separated by space:\n\nExample:\n`123456789 20`\n\n*(Note: 5 score fee will be deducted)*",
       parse_mode="Markdown"
@@ -410,7 +389,6 @@ def process_score_transfer(message):
     bot.reply_to(message, f"❌ خطا در پردازش انتقال: {e}")
 
 
-# بخش خرید امتیاز با بسته‌های جدید
 @bot.callback_query_handler(func=lambda call: call.data == "buy_score_menu")
 def buy_score_menu_callback(call):
   uid = str(call.from_user.id)
@@ -418,16 +396,16 @@ def buy_score_menu_callback(call):
   lang = data.get(uid, {}).get("lang", "dr")
   
   if not check_user_membership(uid):
-    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!", show_alert=True)
     return
 
   bot.answer_callback_query(call.id)
   markup = types.InlineKeyboardMarkup(row_width=1)
   markup.add(
-      types.InlineKeyboardButton("🛒 ۵۰ امتیاز - ۱۰۰ افغانی", callback_data="buy_50"),
-      types.InlineKeyboardButton("🛒 ۱۰۰ امتیاز - ۲۰۰ افغانی", callback_data="buy_100")
+      types.InlineKeyboardButton("🛒 خرید ۵۰ امتیاز - ۱۰۰ افغانی", callback_data="buy_50"),
+      types.InlineKeyboardButton("🛒 خرید ۱۰۰ امتیاز - ۲۰۰ افغانی", callback_data="buy_100")
   )
-  bot.send_message(call.message.chat.id, "🛒 لطفاً بسته مورد نظر خود را انتخاب کنید:", reply_markup=markup)
+  bot.send_message(call.message.chat.id, "🛒 **لطفاً بسته دلخواه خود را انتخاب کنید:**", reply_markup=markup, parse_mode="Markdown")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in ["buy_50", "buy_100"])
@@ -442,12 +420,12 @@ def buy_package_callback(call):
     price = "۲۰۰ افغانی"
 
   bot.answer_callback_query(call.id)
+  
   bot.send_message(
       call.message.chat.id,
-      f"🛒 شما درخواست خرید **{score_amt} امتیاز** به مبلغ **{price}** را دادید.\n\n"
-      f"برای نهایی کردن خرید، لطفاً به پشتیبانی پیام دهید یا رسید پرداختی خود را ارسال کنید:",
-      parse_mode="Markdown",
-      reply_markup=get_main_menu()
+      f"🛒 شما درخواست خرید **{score_amt} امتیاز** به مبلغ **{price}** را ثبت کردید.\n\n"
+      f"برای نهایی کردن خرید و ارسال رسید پرداختی، لطفاً از طریق بخش پشتیبانی با مدیریت در ارتباط باشید:",
+      parse_mode="Markdown"
   )
 
 
@@ -458,7 +436,7 @@ def online_bot_callback(call):
   lang = data.get(uid, {}).get("lang", "dr")
   
   if not check_user_membership(uid):
-    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!", show_alert=True)
     return
 
   score = data.get(uid, {}).get("score", 0)
@@ -469,8 +447,8 @@ def online_bot_callback(call):
     bot.send_message(call.message.chat.id, msg_text)
     return
 
-  prompt_text = "📂 Please send your bot file (`.py`):" if lang == "en" else "📂 لطفاً فایل ربات خود (با فرمت `.py`) را ارسال کنید:"
-  msg = bot.send_message(call.message.chat.id, prompt_text)
+  prompt_text = "📂 Please send your bot file (`.py`):" if lang == "en" else "📂 لطفاً فایل سورس ربات خود (با فرمت `.py`) را ارسال کنید:"
+  msg = bot.send_message(call.message.chat.id, prompt_text, parse_mode="Markdown")
   bot.register_next_step_handler(msg, handle_docs_from_step)
 
 
@@ -518,7 +496,7 @@ def support_callback(call):
   lang = data.get(uid, {}).get("lang", "dr")
 
   if not check_user_membership(uid):
-    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!", show_alert=True)
     return
 
   bot.answer_callback_query(call.id)
@@ -540,9 +518,9 @@ def forward_to_support_admin(message):
       try:
         bot.send_message(
             int(admin_id),
-            f"📩 **پیام جدید پشتیبانی**\n\n"
+            f"📩 **پیام جدید به پشتیبانی**\n\n"
             f"👤 از طرف: @{message.from_user.username or 'ندارد'}\n"
-            f"🆔 آیدی عددی: `{uid}`\n"
+            f"🆔 آیدی عددی: `{uid}`\n\n"
             f"متن پیام زیر را برای پاسخ دادن **ریپلای (Reply)** کنید:",
             parse_mode="Markdown"
         )
@@ -574,7 +552,7 @@ def admin_reply_to_user(message):
 
     bot.send_message(
         chat_id=int(target_uid),
-        text=f"💬 **پاسخ پشتیبانی:**\n\n{message.text}",
+        text=f"💬 **پاسخ پشتیبانی و مدیریت:**\n\n{message.text}",
         parse_mode="Markdown"
     )
     bot.reply_to(message, "✅ پاسخ شما با موفقیت به کاربر ارسال شد.")
@@ -592,7 +570,7 @@ def admin_panel(message):
       types.InlineKeyboardButton("📢 ارسال پیام همگانی", callback_data="admin_broadcast"),
       types.InlineKeyboardButton("📊 آمار کاربران", callback_data="admin_stats")
   )
-  bot.reply_to(message, "⚙️ **پنل مدیریت ربات**\nیکی از گزینه‌ها را انتخاب کنید:", reply_markup=markup, parse_mode="Markdown")
+  bot.reply_to(message, "⚙️ **پنل مدیریت پیشرفته ربات**\n\nلطفاً یکی از گزینه‌ها را انتخاب کنید:", reply_markup=markup, parse_mode="Markdown")
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
@@ -608,7 +586,7 @@ def admin_stats_callback(call):
 def admin_broadcast_callback(call):
   if not is_admin(call.from_user.id):
     return
-  msg = bot.send_message(call.message.chat.id, "✍️ پیام خود را برای ارسال به همه کاربران بنویسید:")
+  msg = bot.send_message(call.message.chat.id, "✍️ پیام خود را برای ارسال همگانی به تمام کاربران بنویسید:")
   bot.register_next_step_handler(msg, perform_broadcast)
 
 
@@ -621,7 +599,7 @@ def perform_broadcast(message):
       count += 1
     except:
       pass
-  bot.reply_to(message, f"✅ پیام با موفقیت برای {count} کاربر ارسال شد.")
+  bot.reply_to(message, f"✅ پیام همگانی با موفقیت برای {count} کاربر ارسال شد.")
 
 
 @bot.message_handler(commands=["GROUP"])
@@ -651,7 +629,7 @@ def group_callback_handler(call):
   if call.data == "grp_add":
     msg = bot.send_message(
         call.message.chat.id,
-        "✍️ لطفاً لینک کانال را بفرستید (یا طبق فرمت قبلی `نام,لینک,آیدی` ارسال کنید):",
+        "✍️ لطفاً لینک کانال را بفرستید (یا طبق فرمت `نام,لینک,آیدی` ارسال کنید):",
         parse_mode="Markdown"
     )
     bot.register_next_step_handler(msg, save_new_channel_step)
@@ -673,7 +651,6 @@ def save_new_channel_step(message):
   try:
     text = message.text.strip()
     
-    # استخراج خودکار آیدی از لینک یا پشتیبانی از فرمت قبلی
     if "t.me/" in text:
       parts = text.split("/")
       ch_id = "@" + parts[-1]
@@ -751,7 +728,7 @@ def admin_action_prompt_callback(call):
     markup = types.InlineKeyboardMarkup(row_width=1)
     for aid in admins:
       if aid == str(INITIAL_ADMIN_ID):
-        continue  # مالک اصلی حذف نشود
+        continue
       markup.add(types.InlineKeyboardButton(f"حذف آیدی: {aid}", callback_data=f"adm_rem_direct_{aid}"))
     
     if len(admins) <= 1:
@@ -816,7 +793,6 @@ def manage_score(message):
   bot.reply_to(message, f"✅ امتیاز اضافه شد. موجودی جدید: {data[target_uid]['score']}")
 
 
-# هندلر آپلود فایل ربات و کسر امتیاز
 @bot.message_handler(content_types=["document"])
 def handle_docs_from_step(message):
   uid = str(message.from_user.id)
@@ -824,7 +800,7 @@ def handle_docs_from_step(message):
   lang = data.get(uid, {}).get("lang", "dr")
 
   if not check_user_membership(uid):
-    bot.reply_to(message, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!")
+    bot.reply_to(message, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال‌ها عضو شوید!")
     return
 
   if data.get(uid, {}).get("score", 0) < 50:
@@ -842,12 +818,10 @@ def handle_docs_from_step(message):
   process = subprocess.Popen(["python3", path])
   active_user_processes[uid] = process
 
-  # ذخیره file_id در حافظه جهت پایداری حتی پس از خاموشی یا آپدیت ربات
   if uid not in data:
     data[uid] = {"score": 0, "lang": lang}
   data[uid]["file_id"] = file_id
 
-  # کسر ۵۰ امتیاز پس از آپلود موفق فایل ربات
   data[uid]["score"] -= 50
   save_data(data)
 
@@ -860,10 +834,23 @@ def handle_docs_from_step(message):
   )
   bot.send_message(message.chat.id, success_text, reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
+  # ارسال پیام به ربات شخص و اطلاع‌رسانی درباره ریس شاهد و پشتیبانی
+  try:
+    bot.send_message(
+        chat_id=int(uid),
+        text=(
+            "🤖 **اطلاعیه مهم سیستم:**\n\n"
+            "ربات شما با موفقیت توسط **ریس شاهد** آنلاین و روی سرور فعال گردید! ✨\n\n"
+            "💬 اگر می‌خواهید ربات‌های بیشتری بسازید یا سفارشی‌سازی کنید، لطفاً از طریق بخش **پشتیبانی** با ریس شاهد در ارتباط باشید."
+        ),
+        parse_mode="Markdown"
+    )
+  except Exception as e:
+    print(f"Could not send notification directly to user bot chat: {e}")
+
 
 if __name__ == "__main__":
   print("Bot Manager is running...")
-  # بازیابی و اجرای مجدد ربات‌های کاربران از روی فایل‌های ذخیره شده در صورت ریستارت یا خاموشی
   if os.path.exists(DATA_FILE):
     try:
       with open(DATA_FILE, "r", encoding="utf-8") as f:
