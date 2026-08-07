@@ -27,8 +27,8 @@ TRANSLATIONS = {
             "از منو زیر استفاده کنید: ✔️"
         ),
         "profile": (
-            "کاربر ⚡ {name} | برای استفاده از این بخش به امتیاز نیاز دارید.\n"
-            "هر کاربری که با لینک شما عضو شود امتیاز می‌گیرید.\n"
+            "کاربر ⚡ {name}\n"
+            "📊 وضعیت ربات: {bot_status}\n"
             "🟢 امتیاز فعلی شما: {score}\n"
             "🌐 لینک مخصوص شما:\n{link}"
         ),
@@ -55,8 +55,8 @@ TRANSLATIONS = {
             "Use the menu below: ✔️"
         ),
         "profile": (
-            "User ⚡ {name} | You need score to use this feature.\n"
-            "Every user who joins via your link gives you score.\n"
+            "User ⚡ {name}\n"
+            "📊 Bot Status: {bot_status}\n"
             "🟢 Your current score: {score}\n"
             "🌐 Your special link:\n{link}"
         ),
@@ -151,8 +151,8 @@ def get_main_menu(lang="dr"):
   markup.add(
       types.InlineKeyboardButton(t["btn_online"], callback_data="online_bot_menu"),
       types.InlineKeyboardButton(t["btn_delete"], callback_data="delete_bot_menu"),
-      types.InlineKeyboardButton(t["btn_transfer"], callback_data="transfer_score"),
-      types.InlineKeyboardButton(t["btn_buy"], callback_data="buy_score"),
+      types.InlineKeyboardButton(t["btn_transfer"], callback_data="transfer_score_menu"),
+      types.InlineKeyboardButton(t["btn_buy"], callback_data="buy_score_menu"),
       types.InlineKeyboardButton(t["btn_info"], callback_data="my_info"),
       types.InlineKeyboardButton(t["btn_support"], callback_data="support_btn")
   )
@@ -164,6 +164,28 @@ def send_main_menu(chat_id, lang="dr"):
   bot.send_message(chat_id, t["welcome_menu"], reply_markup=get_main_menu(lang))
 
 
+def send_user_profile_and_menu(chat_id, user, lang):
+  uid = str(user.id)
+  try:
+    photos = bot.get_user_profile_photos(user.id, limit=1)
+    username_str = f"@{user.username}" if user.username else "ندارد"
+    caption = (
+        f"👤 **مشخصات شما در ربات:**\n\n"
+        f"🆔 آیدی عددی: `{uid}`\n"
+        f"🌐 نام کاربری: {username_str}\n"
+        f" نام: {user.first_name}"
+    )
+    if photos.total_count > 0:
+      file_id = photos.photos[0][0].file_id
+      bot.send_photo(chat_id, file_id, caption=caption, parse_mode="Markdown")
+    else:
+      bot.send_message(chat_id, caption, parse_mode="Markdown")
+  except Exception as e:
+    print(f"Error sending profile info: {e}")
+
+  send_main_menu(chat_id, lang)
+
+
 @bot.message_handler(commands=["start"])
 def start(message):
   uid = str(message.from_user.id)
@@ -171,7 +193,6 @@ def start(message):
   args = message.text.split()
 
   if uid not in data:
-    # اگر کاربر جدید است، اطلاعات اولیه را ذخیره می‌کنیم اما زبان را بعد از انتخاب می‌گذاریم
     data[uid] = {"score": 0, "lang": None}
     if len(args) > 1:
       referrer_id = args[1]
@@ -184,7 +205,7 @@ def start(message):
           pass
     save_data(data)
 
-  # اگر زبان انتخاب نشده باشد، ابتدا منوی انتخاب زبان ظاهر می‌شود
+  # ۱. بررسی اینکه آیا کاربر زبان انتخاب کرده است یا خیر
   if data[uid].get("lang") is None:
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -195,6 +216,8 @@ def start(message):
     return
 
   lang = data[uid]["lang"]
+
+  # ۲. بررسی عضویت اجباری
   if not check_user_membership(uid):
     channels = load_channels()
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -205,14 +228,14 @@ def start(message):
     bot.send_message(message.chat.id, TRANSLATIONS[lang]["join_lock"], reply_markup=markup)
     return
 
-  send_main_menu(message.chat.id, lang)
+  # ۳. نمایش مشخصات و عکس پروفایل به همراه منوی اصلی پس از عبور از مراحل بالا
+  send_user_profile_and_menu(message.chat.id, message.from_user, lang)
 
 
-# تنظیم زبان انتخاب شده توسط کاربر
 @bot.callback_query_handler(func=lambda call: call.data.startswith("lang_"))
 def set_language_callback(call):
   uid = str(call.from_user.id)
-  selected_lang = call.data.split("_")[1]  # dr یا en
+  selected_lang = call.data.split("_")[1]
   
   data = load_data()
   if uid not in data:
@@ -226,6 +249,7 @@ def set_language_callback(call):
   except:
     pass
 
+  # بررسی عضویت اجباری پس از انتخاب زبان
   if not check_user_membership(uid):
     channels = load_channels()
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -236,7 +260,8 @@ def set_language_callback(call):
     bot.send_message(call.message.chat.id, TRANSLATIONS[selected_lang]["join_lock"], reply_markup=markup)
     return
 
-  send_main_menu(call.message.chat.id, selected_lang)
+  # نمایش مشخصات، عکس و منوی اصلی
+  send_user_profile_and_menu(call.message.chat.id, call.from_user, selected_lang)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_join")
@@ -251,7 +276,7 @@ def check_join_callback(call):
       bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
       pass
-    send_main_menu(call.message.chat.id, lang)
+    send_user_profile_and_menu(call.message.chat.id, call.from_user, lang)
   else:
     bot.answer_callback_query(call.id, TRANSLATIONS[lang]["not_joined_alert"], show_alert=True)
 
@@ -273,13 +298,135 @@ def my_info_callback(call):
   user = call.from_user
   ref_link = f"https://t.me/Robat_online_bot?start={uid}"
   
+  path = os.path.join(USER_BOTS_DIR, f"{uid}_bot.py")
+  if os.path.exists(path):
+    bot_status = "✅ این فایل شما در ربات روشن است" if lang != "en" else "✅ Your file is running on the bot"
+  else:
+    bot_status = "❌ هیچ رباتی روشن ندارید" if lang != "en" else "❌ No active bots found"
+
   text = TRANSLATIONS[lang]["profile"].format(
       name=user.first_name,
+      bot_status=bot_status,
       score=data[uid]["score"],
       link=ref_link,
   )
   bot.answer_callback_query(call.id)
   bot.send_message(call.message.chat.id, text, reply_markup=get_main_menu(lang))
+
+
+# بخش انتقال امتیاز بین کاربران عادی
+@bot.callback_query_handler(func=lambda call: call.data == "transfer_score_menu")
+def transfer_score_callback(call):
+  uid = str(call.from_user.id)
+  data = load_data()
+  lang = data.get(uid, {}).get("lang", "dr")
+  
+  if not check_user_membership(uid):
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    return
+
+  bot.answer_callback_query(call.id)
+  msg = bot.send_message(
+      call.message.chat.id,
+      "📤 لطفاً آیدی عددی کاربر مقصد و مقدار امتیازی که می‌خواهید انتقال دهید را با فاصله بفرستید:\n\nمثال:\n`123456789 20`\n\n*(توجه: ۵ امتیاز کارمزد از شما کسر خواهد شد)*"
+      if lang != "en" else
+      "📤 Please send target user ID and amount separated by space:\n\nExample:\n`123456789 20`\n\n*(Note: 5 score fee will be deducted)*",
+      parse_mode="Markdown"
+  )
+  bot.register_next_step_handler(msg, process_score_transfer)
+
+
+def process_score_transfer(message):
+  sender_uid = str(message.from_user.id)
+  data = load_data()
+
+  if message.text and message.text.startswith("/"):
+    return
+
+  try:
+    parts = message.text.strip().split()
+    if len(parts) < 2:
+      bot.reply_to(message, "❌ فرمت اشتباه است. لطفاً طبق مثال ارسال کنید.")
+      return
+
+    target_uid = parts[0]
+    amount = int(parts[1])
+
+    if amount <= 0:
+      bot.reply_to(message, "❌ مقدار امتیاز باید بیشتر از صفر باشد.")
+      return
+
+    if target_uid == sender_uid:
+      bot.reply_to(message, "❌ شما نمی‌توانید به خودتان امتیاز انتقال دهید.")
+      return
+
+    if target_uid not in data:
+      bot.reply_to(message, "❌ کاربر مقصد در ربات ثبت‌نام نکرده است.")
+      return
+
+    total_needed = amount + 5
+    sender_score = data[sender_uid].get("score", 0)
+
+    if sender_score < total_needed:
+      bot.reply_to(message, f"❌ موجودی شما کافی نیست! شما به {total_needed} امتیاز نیاز دارید (شامل ۵ امتیاز کارمزد)، اما امتیاز فعلی شما {sender_score} است.")
+      return
+
+    data[sender_uid]["score"] -= total_needed
+    data[target_uid]["score"] += amount
+    save_data(data)
+
+    bot.reply_to(message, f"✅ انتقال با موفقیت انجام شد!\n📉 مقدار {amount} امتیاز به کاربر ارسال شد.\n⚙️ ۵ امتیاز بابت کارمزد کسر گردید.\n🟢 موجودی جدید شما: {data[sender_uid]['score']}")
+    
+    try:
+      bot.send_message(int(target_uid), f"🎉 کاربر گرامی، مقدار {amount} امتیاز از طرف یک کاربر به حساب شما واریز شد!")
+    except:
+      pass
+
+  except ValueError:
+    bot.reply_to(message, "❌ مقدار امتیاز را فقط به صورت عدد وارد کنید.")
+  except Exception as e:
+    bot.reply_to(message, f"❌ خطا در پردازش انتقال: {e}")
+
+
+# بخش خرید امتیاز با بسته‌های جدید
+@bot.callback_query_handler(func=lambda call: call.data == "buy_score_menu")
+def buy_score_menu_callback(call):
+  uid = str(call.from_user.id)
+  data = load_data()
+  lang = data.get(uid, {}).get("lang", "dr")
+  
+  if not check_user_membership(uid):
+    bot.answer_callback_query(call.id, "❌ Join channels first!" if lang == "en" else "❌ ابتدا باید در کانال و گروه عضو شوید!", show_alert=True)
+    return
+
+  bot.answer_callback_query(call.id)
+  markup = types.InlineKeyboardMarkup(row_width=1)
+  markup.add(
+      types.InlineKeyboardButton("🛒 ۵۰ امتیاز - ۱۰۰ افغانی", callback_data="buy_50"),
+      types.InlineKeyboardButton("🛒 ۱۰۰ امتیاز - ۲۰۰ افغانی", callback_data="buy_100")
+  )
+  bot.send_message(call.message.chat.id, "🛒 لطفاً بسته مورد نظر خود را انتخاب کنید:", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["buy_50", "buy_100"])
+def buy_package_callback(call):
+  pkg = call.data.split("_")[1]
+  
+  if pkg == "50":
+    score_amt = 50
+    price = "۱۰۰ افغانی"
+  else:
+    score_amt = 100
+    price = "۲۰۰ افغانی"
+
+  bot.answer_callback_query(call.id)
+  bot.send_message(
+      call.message.chat.id,
+      f"🛒 شما درخواست خرید **{score_amt} امتیاز** به مبلغ **{price}** را دادید.\n\n"
+      f"برای نهایی کردن خرید، لطفاً به پشتیبانی پیام دهید یا رسید پرداختی خود را ارسال کنید:",
+      parse_mode="Markdown",
+      reply_markup=get_main_menu()
+  )
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "online_bot_menu")
@@ -336,14 +483,6 @@ def delete_bot_callback(call):
   else:
     msg_text = "❌ You have no active bots on the server." if lang == "en" else "❌ شما هیچ ربات فعالی روی سرور ندارید."
     bot.send_message(call.message.chat.id, msg_text, reply_markup=get_main_menu(lang))
-
-
-@bot.callback_query_handler(func=lambda call: call.data in ["transfer_score", "buy_score"])
-def other_options_callback(call):
-  uid = str(call.from_user.id)
-  data = load_data()
-  lang = data.get(uid, {}).get("lang", "dr")
-  bot.answer_callback_query(call.id, "🚧 Coming soon!" if lang == "en" else "🚧 این بخش به زودی فعال خواهد شد.", show_alert=True)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "support_btn")
@@ -542,18 +681,67 @@ def manage_admins(message):
     return
   args = message.text.split()
   if len(args) < 2:
-    bot.reply_to(message, "فرمت صحیح:\n`/SHAHID USER_ID`", parse_mode="Markdown")
+    bot.reply_to(message, "❌ فرمت صحیح:\n`/SHAHID USER_ID`", parse_mode="Markdown")
     return
   target_uid = args[1]
+
+  try:
+    chat_member = bot.get_chat(int(target_uid))
+    username = f"@{chat_member.username}" if chat_member.username else "ندارد"
+    name = chat_member.first_name or "نامشخص"
+
+    admins = load_admins()
+    is_currently_admin = target_uid in admins
+
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    if is_currently_admin:
+      markup.add(types.InlineKeyboardButton("🗑️ حذف از ادمین‌ها", callback_data=f"adm_rem_{target_uid}"))
+      status_text = "⭐ این کاربر **ادمین** است."
+    else:
+      markup.add(types.InlineKeyboardButton("➕ افزودن به ادمین‌ها", callback_data=f"adm_add_{target_uid}"))
+      status_text = "👤 این کاربر ادمین نیست."
+
+    caption = (
+        f"👤 **اطلاعات کاربر مورد نظر:**\n\n"
+        f"🆔 آیدی عددی: `{target_uid}`\n"
+        f" نام: {name}\n"
+        f" یوزرنیم: {username}\n"
+        f" وضعیت: {status_text}"
+    )
+
+    photos = bot.get_user_profile_photos(int(target_uid), limit=1)
+    if photos.total_count > 0:
+      file_id = photos.photos[0][0].file_id
+      bot.send_photo(message.chat.id, file_id, caption=caption, reply_markup=markup, parse_mode="Markdown")
+    else:
+      bot.send_message(message.chat.id, caption, reply_markup=markup, parse_mode="Markdown")
+
+  except Exception as e:
+    bot.reply_to(message, f"❌ خطا در دریافت اطلاعات کاربر: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("adm_"))
+def admin_toggle_callback(call):
+  if str(call.from_user.id) != str(INITIAL_ADMIN_ID):
+    return
+
+  data_parts = call.data.split("_")
+  action = data_parts[1]
+  target_uid = data_parts[2]
+
   admins = load_admins()
-  if target_uid in admins:
-    admins.remove(target_uid)
-    save_admins(admins)
-    bot.reply_to(message, f"🗑️ کاربر `{target_uid}` حذف شد.", parse_mode="Markdown")
-  else:
-    admins.append(target_uid)
-    save_admins(admins)
-    bot.reply_to(message, f"⭐ کاربر `{target_uid}` اضافه شد.", parse_mode="Markdown")
+  if action == "add":
+    if target_uid not in admins:
+      admins.append(target_uid)
+      save_admins(admins)
+    bot.answer_callback_query(call.id, f"✅ کاربر {target_uid} به ادمین‌ها اضافه شد.")
+    bot.edit_message_caption("⭐ کاربر با موفقیت به ادمین‌ها **اضافه** شد.", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+  elif action == "rem":
+    if target_uid in admins and target_uid != str(INITIAL_ADMIN_ID):
+      admins.remove(target_uid)
+      save_admins(admins)
+    bot.answer_callback_query(call.id, f"🗑️ کاربر {target_uid} از ادمین‌ها حذف شد.")
+    bot.edit_message_caption("👤 کاربر با موفقیت از ادمین‌ها **حذف** شد.", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
 
 
 @bot.message_handler(commands=["add"])
@@ -574,6 +762,7 @@ def manage_score(message):
   bot.reply_to(message, f"✅ امتیاز اضافه شد. موجودی جدید: {data[target_uid]['score']}")
 
 
+# هندلر آپلود فایل ربات و کسر امتیاز
 @bot.message_handler(content_types=["document"])
 def handle_docs_from_step(message):
   uid = str(message.from_user.id)
@@ -598,15 +787,16 @@ def handle_docs_from_step(message):
   process = subprocess.Popen(["python3", path])
   active_user_processes[uid] = process
 
+  # کسر ۵۰ امتیاز پس از آپلود موفق فایل ربات
   data[uid]["score"] -= 50
   save_data(data)
 
   success_text = (
       "🚀 **Congratulations! Your bot is now online** ✨\n\n"
-      "🤖 Your bot has been activated on the server."
+      "🤖 Your bot has been activated on the server and 50 score was deducted."
   ) if lang == "en" else (
       "🚀 **تبریک! ربات شما با موفقیت آنلاین و روشن شد** ✨\n\n"
-      "🤖 ربات شما آنلاین گردید و روی سرور فعال شد."
+      "🤖 ربات شما روی سرور فعال شد و ۵۰ امتیاز از حساب شما کسر گردید."
   )
   bot.send_message(message.chat.id, success_text, reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
