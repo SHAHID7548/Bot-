@@ -106,7 +106,6 @@ def load_admins():
             admins.append(str(aid))
     except Exception as e:
       print(f"Error loading admins: {e}")
-  save_admins(admins)
   return admins
 
 
@@ -154,7 +153,6 @@ def check_user_membership(user_id):
   return True
 
 
-# ساخت منوی اصلی شیشه‌ای مدرن و منظم
 def get_main_menu(lang="dr"):
   t = TRANSLATIONS.get(lang, TRANSLATIONS["dr"])
   markup = types.InlineKeyboardMarkup(row_width=2)
@@ -172,28 +170,6 @@ def get_main_menu(lang="dr"):
 def send_main_menu(chat_id, lang="dr"):
   t = TRANSLATIONS.get(lang, TRANSLATIONS["dr"])
   bot.send_message(chat_id, t["welcome_menu"], reply_markup=get_main_menu(lang), parse_mode="Markdown")
-
-
-def send_user_profile_and_menu(chat_id, user, lang):
-  uid = str(user.id)
-  try:
-    photos = bot.get_user_profile_photos(user.id, limit=1)
-    username_str = f"@{user.username}" if user.username else "ندارد"
-    caption = (
-        f"🛡 **اطلاعات حساب کاربری شما:**\n\n"
-        f"🆔 آیدی عددی: `{uid}`\n"
-        f"🌐 نام کاربری: {username_str}\n"
-        f"👤 نام: {user.first_name}"
-    )
-    if photos.total_count > 0:
-      file_id = photos.photos[0][0].file_id
-      bot.send_photo(chat_id, file_id, caption=caption, parse_mode="Markdown")
-    else:
-      bot.send_message(chat_id, caption, parse_mode="Markdown")
-  except Exception as e:
-    print(f"Error sending profile info: {e}")
-
-  send_main_menu(chat_id, lang)
 
 
 @bot.message_handler(commands=["start"])
@@ -238,7 +214,7 @@ def start(message):
     bot.send_message(message.chat.id, TRANSLATIONS[lang]["join_lock"], reply_markup=markup, parse_mode="Markdown")
     return
 
-  send_user_profile_and_menu(message.chat.id, message.from_user, lang)
+  send_main_menu(message.chat.id, lang)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("lang_"))
@@ -269,7 +245,7 @@ def set_language_callback(call):
     bot.send_message(call.message.chat.id, TRANSLATIONS[selected_lang]["join_lock"], reply_markup=markup, parse_mode="Markdown")
     return
 
-  send_user_profile_and_menu(call.message.chat.id, call.from_user, selected_lang)
+  send_main_menu(call.message.chat.id, selected_lang)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_join")
@@ -284,7 +260,7 @@ def check_join_callback(call):
       bot.delete_message(call.message.chat.id, call.message.message_id)
     except:
       pass
-    send_user_profile_and_menu(call.message.chat.id, call.from_user, lang)
+    send_main_menu(call.message.chat.id, lang)
   else:
     bot.answer_callback_query(call.id, TRANSLATIONS[lang]["not_joined_alert"], show_alert=True)
 
@@ -506,11 +482,11 @@ def forward_to_support_admin(message):
     admins = load_admins()
     for admin_id in admins:
       try:
+        # ارسال پیام پشتیبانی فقط با آیدی عددی بدون نمایش نام کاربری
         bot.send_message(
             int(admin_id),
             f"📩 **پیام جدید به پشتیبانی**\n\n"
-            f"👤 کاربر: {message.from_user.first_name}\n"
-            f"🆔 آیدی کاربر: `{uid}`\n\n"
+            f"🆔 آیدی عددی: `{uid}`\n\n"
             f"👇 برای پاسخ دادن، همین پیام را ریپلای کنید:",
             parse_mode="Markdown"
         )
@@ -530,15 +506,13 @@ def admin_reply_to_user(message):
     target_uid = None
 
     if replied_msg.forward_from:
-      target_uid = replied_msg.forward_from.id
-    elif replied_msg.forward_sender_name:
-      pass
+      target_uid = str(replied_msg.forward_from.id)
 
     if not target_uid and replied_msg.text:
       lines = replied_msg.text.split("\n")
       for line in lines:
-        if "آیدی کاربر:" in line or "آیدی عددی:" in line:
-          target_uid = line.split("`")[1]
+        if "آیدی عددی:" in line:
+          target_uid = line.split("`")[1].strip()
           break
 
     if not target_uid:
