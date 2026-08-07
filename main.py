@@ -406,7 +406,6 @@ def buy_score_menu_callback(call):
     return
 
   bot.answer_callback_query(call.id)
-  # تبدیل بخش خرید امتیاز از شیشه‌ای به متن راهنما همراه با هدایت به پشتیبانی
   text = (
       "🛒 **راهنمای خرید امتیاز:**\n\n"
       "برای خرید امتیاز و ارتقای حساب کاربری خود، می‌توانید بسته‌های زیر را تهیه کنید:\n"
@@ -510,9 +509,9 @@ def forward_to_support_admin(message):
         bot.send_message(
             int(admin_id),
             f"📩 **پیام جدید به پشتیبانی**\n\n"
-            f"👤 از طرف: @{message.from_user.username or 'ندارد'}\n"
-            f"🆔 آیدی عددی: `{uid}`\n\n"
-            f"متن پیام زیر را برای پاسخ دادن **ریپلای (Reply)** کنید:",
+            f"👤 کاربر: {message.from_user.first_name}\n"
+            f"🆔 آیدی کاربر: `{uid}`\n\n"
+            f"👇 برای پاسخ دادن، همین پیام را ریپلای کنید:",
             parse_mode="Markdown"
         )
         bot.forward_message(int(admin_id), message.chat.id, message.message_id)
@@ -532,14 +531,19 @@ def admin_reply_to_user(message):
 
     if replied_msg.forward_from:
       target_uid = replied_msg.forward_from.id
-    else:
+    elif replied_msg.forward_sender_name:
+      pass
+
+    if not target_uid and replied_msg.text:
       lines = replied_msg.text.split("\n")
       for line in lines:
-        if "آیدی عددی:" in line:
+        if "آیدی کاربر:" in line or "آیدی عددی:" in line:
           target_uid = line.split("`")[1]
           break
-      if not target_uid:
-        target_uid = replied_msg.chat.id
+
+    if not target_uid:
+      bot.reply_to(message, "❌ خطا: نتوانستم آیدی کاربر را از این پیام تشخیص دهم. لطفاً پیامی را ریپلای کنید که اطلاعات کاربر در آن باشد.")
+      return
 
     bot.send_message(
         chat_id=int(target_uid),
@@ -825,7 +829,6 @@ def handle_docs_from_step(message):
   )
   bot.send_message(message.chat.id, success_text, reply_markup=get_main_menu(lang), parse_mode="Markdown")
 
-  # ارسال پیام به ربات شخص و اطلاع‌رسانی درباره ریس شاهد و پشتیبانی
   try:
     bot.send_message(
         chat_id=int(uid),
@@ -842,13 +845,12 @@ def handle_docs_from_step(message):
 
 if __name__ == "__main__":
   print("Bot Manager is running...")
-  load_admins()  # بارگذاری و تثبیت ادمین‌ها در فایل
+  load_admins()
   if os.path.exists(DATA_FILE):
     try:
       with open(DATA_FILE, "r", encoding="utf-8") as f:
         saved_data = json.load(f)
         for user_id, user_info in saved_data.items():
-          # روشن کردن خودکار ربات‌های کاربران در صورت داشتن فایل ذخیره شده
           bot_path = os.path.join(USER_BOTS_DIR, f"{user_id}_bot.py")
           if os.path.exists(bot_path):
             try:
@@ -858,7 +860,6 @@ if __name__ == "__main__":
             except Exception as e:
               print(f"Failed to restart bot for {user_id}: {e}")
           
-          # روشن کردن خودکار ربات‌هایی که آیدی فایل‌شان ثبت شده است
           elif user_info.get("file_id"):
             try:
               f_info = bot.get_file(user_info["file_id"])
